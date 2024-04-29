@@ -11,14 +11,16 @@ export default function Navbar() {
           checked ? "bg-black" : "bg-white backdrop:filter backdrop-blur-xl"
         } py-3 flex justify-between items-center px-4 fixed w-full`}
       >
-        <h1
-          className={` ${
-            checked ? "text-blue-300" : "text-black"
-          }  font-bold text-3xl`}
-        >
-          Shortly
-        </h1>
-
+        <div className="flex justify-center items-center">
+          <h1
+            className={` ${
+              checked ? "text-blue-300" : "text-black"
+            }  font-bold text-3xl`}
+          >
+            Shortly
+          </h1>
+          <div className="text-white text-xl font-bold  ml-5"><Link to={"/"}>Home</Link></div>
+        </div>
         <div className="flex w-fit justify-center items-center">
           <Link to="/list">
             <div className="flex px-3 w-fit -h-fit justify-center items-center ">

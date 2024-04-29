@@ -13,6 +13,7 @@ type DataType = {
 
 type UrlContextType = {
   checked: boolean;
+  listLoading:boolean;
   loading: boolean;
   correct: string;
   handleCopyText: (textToCopy: string) => void;
@@ -34,12 +35,16 @@ export default function UrlProvider({
 }) {
   const [checked, setChecked] = useState<boolean>(true);
   const [loading, setLoading] = useState<boolean>(false);
+  const [listLoading, setListLoading] = useState<boolean>(false);
+
   const [correct, setCorrect] = useState<string>("");
   const [shortUrls, setShortUrls] = useState<DataType[]>([]);
   useEffect(() => {
     const AllShortUrls = async () => {
+      setListLoading(true)
       const URL = `${API_URL}/analytics`;
       const response = await axios.get(`${URL}`);
+      setListLoading(false)
       setShortUrls(response.data);
     };
     AllShortUrls();
@@ -87,6 +92,7 @@ export default function UrlProvider({
     correct,
     handleCopyText,
     shortUrls,
+    listLoading
   };
 
   return <UrlContext.Provider value={value}>{children}</UrlContext.Provider>;
