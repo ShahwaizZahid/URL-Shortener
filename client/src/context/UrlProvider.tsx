@@ -1,6 +1,8 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { default as axios } from "axios";
 import { API_URL } from "../config";
+import { useAuth } from "./AuthProvider";
+import { Navigate, useNavigate } from "react-router-dom";
 
 type DataType = {
   createdAt: string;
@@ -13,12 +15,14 @@ type DataType = {
 
 type UrlContextType = {
   checked: boolean;
-  listLoading:boolean;
+  listLoading: boolean;
   loading: boolean;
   correct: string;
   handleCopyText: (textToCopy: string) => void;
   themeSwitch: () => void;
   generateShortUrl: (url: string) => Promise<any>;
+  // AllShortUrls: () => Promise<any>;
+
   shortUrls: DataType[];
 };
 
@@ -38,17 +42,34 @@ export default function UrlProvider({
   const [listLoading, setListLoading] = useState<boolean>(false);
 
   const [correct, setCorrect] = useState<string>("");
+
   const [shortUrls, setShortUrls] = useState<DataType[]>([]);
+
+  const { user } = useAuth()!;
+  const navigate = useNavigate();
+
+  const AllShortUrls = async () => {
+    try {
+      if (user) {
+        console.log("ha user", user);
+        setListLoading(true);
+        const URL = `${API_URL}/analytics`;
+        const response = await axios.get(`${URL}`, {
+          withCredentials: true,
+        });
+        console.log(response.data);
+        setShortUrls(response.data);
+      } else {
+        navigate("/login");
+      }
+    } catch {
+    } finally {
+      setListLoading(false);
+    }
+  };
   useEffect(() => {
-    const AllShortUrls = async () => {
-      setListLoading(true)
-      const URL = `${API_URL}/analytics`;
-      const response = await axios.get(`${URL}`);
-      setListLoading(false)
-      setShortUrls(response.data);
-    };
     AllShortUrls();
-  }, []);
+  }, [user]);
 
   const themeSwitch = () => {
     setChecked(checked ? false : true);
@@ -64,15 +85,26 @@ export default function UrlProvider({
 
   const generateShortUrl = async (url: string) => {
     try {
-      const urlRegex = /^(ftp|http|https):\/\/[^ "]+$/;
-      const test = urlRegex.test(url);
-      if (test) {
-        const URL = API_URL;
-        // const valid =ValidCheck(url);
-        const response = await axios.post(`${URL}`, { url });
-        return `${API_URL}/${response.data.id}`;
+      if (!user) {
+        navigate("/signup");
+        return `tou first want to login`;
       } else {
-        return `Error`;
+        const urlRegex = /^(ftp|http|https):\/\/[^ "]+$/;
+        const test = urlRegex.test(url);
+        if (test) {
+          const URL = API_URL;
+          const response = await axios.post(
+            `${URL}`,
+            { url },
+            {
+              withCredentials: true,
+            }
+          );
+          AllShortUrls();
+          return `${API_URL}/${response.data.id}`;
+        } else {
+          return `Error`;
+        }
       }
     } catch (error) {
       console.error("Error generating short URL:", error);
@@ -92,7 +124,8 @@ export default function UrlProvider({
     correct,
     handleCopyText,
     shortUrls,
-    listLoading
+    listLoading,
+    // AllShortUrls,
   };
 
   return <UrlContext.Provider value={value}>{children}</UrlContext.Provider>;

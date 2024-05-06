@@ -10,6 +10,7 @@ async function handleGenerateNewUrl(req, res) {
       shortId: shortID,
       redirectURL: body.url,
       visitHistory: [],
+      createdBy: req.user._id,
     });
     res.send({ id: shortID });
   } catch (e) {
@@ -18,7 +19,7 @@ async function handleGenerateNewUrl(req, res) {
 }
 
 async function handleGetAnalytics(req, res) {
-  const urls = await URL.find();
+  const urls = await URL.find({ createdBy: req.user._id });
   return res.json(urls);
 }
 
