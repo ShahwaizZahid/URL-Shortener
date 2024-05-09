@@ -2,6 +2,8 @@ import { createContext, useContext, useState, useEffect } from "react";
 import { default as axios, AxiosError } from "axios";
 import { API_URL_USER } from "../config";
 import { useLocalStorage } from "../hooks/useLocalStorage";
+import { useNavigate } from "react-router-dom";
+
 export type SignupData = {
   name: string;
   password: string;
@@ -34,21 +36,32 @@ export default function AuthProvider({
   children: React.ReactNode;
 }) {
   const [user, setUser] = useState<any>();
-
   const [signUpMessage, setSignUpMessage] = useState({ message: "" });
   const [loginMessage, setloginMessage] = useState({ message: "" });
   const [hasSession, setHasSession] = useLocalStorage("has-session", false);
 
+  const navigate = useNavigate();
+
   useEffect(() => {
     const getSession = async () => {
-      setUser(
-        (
-          await axios.get("http://localhost:4000/user/me", {
-            withCredentials: true,
-          })
-        ).data
-      );
-      setHasSession(true);
+      try {
+        setUser(
+          (
+            await axios.get(`${API_URL_USER}/me`, {
+              withCredentials: true,
+            })
+          ).data
+        );
+        setHasSession(true);
+      } catch (e) {
+        if (e instanceof AxiosError) {
+          if (e.response?.data.message) {
+            console.log(e.response.data.message);
+          } else {
+            e.cause?.message && console.log(e.cause.message);
+          }
+        }
+      }
     };
     if (hasSession && !user) {
       getSession();
@@ -66,6 +79,7 @@ export default function AuthProvider({
         }
       );
       setSignUpMessage({ message: res.data.message });
+      navigate("/login");
     } catch (e) {
       if (e instanceof AxiosError) {
         if (e.response?.data.message) {
@@ -91,7 +105,6 @@ export default function AuthProvider({
           withCredentials: true,
         }
       );
-      console.log(res.data);
       setUser(res.data.user);
       setloginMessage({ message: res.data.message });
       setHasSession(true);
@@ -113,9 +126,7 @@ export default function AuthProvider({
   const logout = async () => {
     const url = API_URL_USER;
     try {
-      console.log("jh");
       if (user) {
-        console.log("logout");
         await axios.post(
           `${url}/logout`,
           {},
@@ -123,13 +134,17 @@ export default function AuthProvider({
             withCredentials: true,
           }
         );
-        console.log("lohg");
         setHasSession(false);
         setUser(null);
-        console.log("logout successfully");
       }
     } catch (e) {
-      console.log("error:logout");
+      if (e instanceof AxiosError) {
+        if (e.response?.data.message) {
+          console.log(e.response.data.message);
+        } else {
+          e.cause?.message && console.log(e.cause.message);
+        }
+      }
     }
   };
 

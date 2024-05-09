@@ -14,7 +14,7 @@ async function handleGenerateNewUrl(req, res) {
     });
     res.send({ id: shortID });
   } catch (e) {
-    console.log(e);
+    console.log("Error hile genarating short Url", e);
   }
 }
 

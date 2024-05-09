@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect } from "react";
 import { default as axios } from "axios";
 import { API_URL } from "../config";
 import { useAuth } from "./AuthProvider";
-import { Navigate, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 type DataType = {
   createdAt: string;
@@ -40,24 +40,20 @@ export default function UrlProvider({
   const [checked, setChecked] = useState<boolean>(true);
   const [loading, setLoading] = useState<boolean>(false);
   const [listLoading, setListLoading] = useState<boolean>(false);
-
   const [correct, setCorrect] = useState<string>("");
-
   const [shortUrls, setShortUrls] = useState<DataType[]>([]);
 
-  const { user } = useAuth()!;
   const navigate = useNavigate();
+  const { user } = useAuth()!;
 
   const AllShortUrls = async () => {
     try {
       if (user) {
-        console.log("ha user", user);
         setListLoading(true);
         const URL = `${API_URL}/analytics`;
         const response = await axios.get(`${URL}`, {
           withCredentials: true,
         });
-        console.log(response.data);
         setShortUrls(response.data);
       } else {
         navigate("/login");
@@ -67,6 +63,7 @@ export default function UrlProvider({
       setListLoading(false);
     }
   };
+
   useEffect(() => {
     AllShortUrls();
   }, [user]);
